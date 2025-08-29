@@ -3,7 +3,7 @@
 
 
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional, List
 from datetime import datetime
 
@@ -68,7 +68,7 @@ class Conversation(ConversationBase):
     document_id: Optional[int] = None
     created_at: datetime
     updated_at: datetime
-    messages: List[Message] = []
+    messages: List[Message] = Field(default_factory=list)
 
     class Config:
         orm_mode = True
