@@ -46,12 +46,12 @@ class MessageBase(BaseModel):
     content: str
 
 class MessageCreate(MessageBase):
-    metadata: Optional[str] = None
+    message_metadata: Optional[str] = None
 
 class Message(MessageBase):
     id: int
     created_at: datetime
-    metadata: Optional[str] = None
+    message_metadata: Optional[str] = None
 
     class Config:
         orm_mode = True

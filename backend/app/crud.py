@@ -76,7 +76,7 @@ def create_message(db: Session, message: schemas.MessageCreate, conversation_id:
     db_message = models.Message(
         sender=message.sender,
         content=message.content,
-        message_metadata=message.metadata,
+        message_metadata=getattr(message, 'message_metadata', None),
         conversation_id=conversation_id
     )
     db.add(db_message)
