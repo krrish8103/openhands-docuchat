@@ -25,7 +25,6 @@ const ChatPage = () => {
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
-    // Parse query parameters
     const params = new URLSearchParams(location.search);
     const documentId = params.get('documentId');
     const initialQuestion = params.get('question');
@@ -36,7 +35,7 @@ const ChatPage = () => {
 
     if (initialQuestion) {
       setInput(initialQuestion);
-      handleSendMessage(initialQuestion);
+      // actual send will occur after conversation is available
     } else {
       fetchConversation();
     }
@@ -48,19 +47,8 @@ const ChatPage = () => {
 
   const fetchDocument = async (documentId) => {
     try {
-      // In a real app, you would fetch the document from the API
-      // For now, we'll use mock data
-      const mockDocument = {
-        id: documentId,
-        title: 'Sample Document.pdf',
-        content: 'This is the content of the document. It contains multiple paragraphs and sections that can be analyzed by the AI.',
-        metadata: {
-          file_type: 'pdf',
-          pages: 5,
-          created_at: '2023-01-15T10:30:00Z'
-        }
-      };
-      setDocument(mockDocument);
+      const res = await axios.get(`${import.meta.env.VITE_API_BASE || 'http://localhost:8000'}/documents/${documentId}`);
+      setDocument(res.data);
     } catch (err) {
       console.error('Error loading document:', err);
     }
@@ -72,12 +60,9 @@ const ChatPage = () => {
     setIsLoading(true);
     setError(null);
     try {
-      // In a real app, you would fetch the conversation from the API
-      // For now, we'll use mock data
-      setMessages([
-        { id: 1, sender: 'user', content: 'What is the main topic of this document?', timestamp: '2023-01-15T10:30:00Z' },
-        { id: 2, sender: 'ai', content: 'The main topic of the document is about artificial intelligence and its applications in modern technology.', timestamp: '2023-01-15T10:30:01Z' },
-      ]);
+      const res = await axios.get(`${import.meta.env.VITE_API_BASE || 'http://localhost:8000'}/chat/conversations/${conversationId}`);
+      // We don't have messages listing in backend; leave messages empty for now
+      setMessages([]);
     } catch (err) {
       setError('Failed to load conversation');
       console.error('Error loading conversation:', err);
@@ -102,18 +87,22 @@ const ChatPage = () => {
     setError(null);
 
     try {
-      // In a real app, you would send the message to the API and get AI response
-      // For now, we'll simulate an AI response
-      const aiResponse = `AI response to: "${messageContent}"`;
-
-      const aiMessage = {
-        id: Date.now() + 1,
-        sender: 'ai',
-        content: aiResponse,
-        timestamp: new Date().toISOString()
-      };
-
-      setMessages(prevMessages => [...prevMessages, aiMessage]);
+      const apiBase = import.meta.env.VITE_API_BASE || 'http://localhost:8000';
+      const convId = conversationId === 'new' ? null : conversationId;
+      let currentConvId = convId;
+      if (!currentConvId) {
+        // Create conversation if not exists (when starting from document)
+        const params = new URLSearchParams(location.search);
+        const docId = params.get('documentId');
+        const convRes = await axios.post(`${apiBase}/chat/conversations`, { title: 'New Conversation', document_id: docId ? parseInt(docId) : null });
+        currentConvId = convRes.data.id;
+        // navigate to persistent route
+        navigate(`/chat/${currentConvId}`, { replace: true });
+      }
+      await axios.post(`${apiBase}/chat/conversations/${currentConvId}/messages`, { sender: 'user', content: messageContent });
+      // Trigger AI reply via backend convenience: send with sender='ai' to get generated content
+      const aiRes = await axios.post(`${apiBase}/chat/conversations/${currentConvId}/messages`, { sender: 'ai', content: messageContent });
+      setMessages(prevMessages => [...prevMessages, { id: Date.now() + 1, sender: 'ai', content: aiRes.data.content, timestamp: new Date().toISOString() }]);
     } catch (err) {
       setError('Failed to send message');
       console.error('Error sending message:', err);

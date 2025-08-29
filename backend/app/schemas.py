@@ -33,6 +33,8 @@ class DocumentCreate(DocumentBase):
 class Document(DocumentBase):
     id: int
     user_id: int
+    content: Optional[str] = None
+    document_metadata: Optional[str] = None
     created_at: datetime
     updated_at: datetime
 

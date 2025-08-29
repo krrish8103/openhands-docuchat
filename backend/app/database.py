@@ -7,9 +7,15 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 import os
 
-SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://user:password@localhost/docuchatpro")
+# Default to SQLite for easy local setup; can be overridden via env var
+SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./docuchatpro.db")
 
-engine = create_engine(SQLALCHEMY_DATABASE_URL)
+# SQLite requires special connect args for multithreading with SQLAlchemy
+if SQLALCHEMY_DATABASE_URL.startswith("sqlite"):
+    engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
+else:
+    engine = create_engine(SQLALCHEMY_DATABASE_URL)
+
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()

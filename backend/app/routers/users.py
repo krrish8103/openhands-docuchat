@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 from .. import crud, schemas, models
 from ..database import get_db
 from passlib.context import CryptContext
+from ..dependencies import get_current_user
 
 router = APIRouter(
     prefix="/users",
@@ -26,7 +27,7 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     return crud.create_user(db=db, user=user)
 
 @router.get("/me", response_model=schemas.User)
-def read_users_me(current_user: models.User = Depends()):
+def read_users_me(current_user: models.User = Depends(get_current_user)):
     return current_user
 
 

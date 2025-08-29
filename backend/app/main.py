@@ -5,11 +5,15 @@ import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
+from .database import Base, engine
 
 # Load environment variables
 load_dotenv()
 
 app = FastAPI()
+
+# Create all tables on startup (for SQLite demo)
+Base.metadata.create_all(bind=engine)
 
 # CORS setup
 origins = [

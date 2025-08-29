@@ -22,7 +22,7 @@ DocuChatPro is an AI-powered document assistant that allows users to upload file
 - **Frontend**: React + TailwindCSS
 - **Backend**: FastAPI (Python)
 - **AI Models**: Integration with deepseek-r1, chatgpt-4o-mini, gemini-1.5-flash
-- **Database**: PostgreSQL
+- **Database**: SQLite by default (override with DATABASE_URL)
 - **File Processing**: pdfminer.six, python-docx, pytesseract, BeautifulSoup4
 
 ## Project Structure
@@ -66,9 +66,12 @@ backend/           # FastAPI backend
    poetry install
    ```
 
-3. Set up environment variables in `.env` file:
+3. Set up environment variables in `.env` file (SQLite by default):
    ```
-   DATABASE_URL=postgresql://user:password@localhost/docuchatpro
+   # For local development, SQLite is used by default. You can omit DATABASE_URL
+   # or explicitly set it as below. To use Postgres, provide a Postgres URL.
+   # DATABASE_URL=sqlite:///./docuchatpro.db
+   # DATABASE_URL=postgresql://user:password@localhost/docuchatpro
    OPENAI_API_KEY=your_openai_api_key_here
    DEEPSEEK_API_KEY=your_deepseek_api_key_here
    GEMINI_API_KEY=your_gemini_api_key_here

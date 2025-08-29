@@ -10,6 +10,7 @@ from typing import List
 from .. import crud, schemas, models
 from ..database import get_db
 from ..services.ai_service import get_ai_response
+from ..dependencies import get_current_user
 
 router = APIRouter(
     prefix="/chat",
@@ -20,14 +21,14 @@ router = APIRouter(
 def create_conversation(
     conversation: schemas.ConversationCreate,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends()
+    current_user: models.User = Depends(get_current_user)
 ):
     return crud.create_conversation(db=db, conversation=conversation, user_id=current_user.id)
 
 @router.get("/conversations", response_model=List[schemas.Conversation])
 def read_conversations(
     db: Session = Depends(get_db),
-    current_user: models.User = Depends()
+    current_user: models.User = Depends(get_current_user)
 ):
     return crud.get_conversations_by_user(db, user_id=current_user.id)
 
@@ -35,7 +36,7 @@ def read_conversations(
 def read_conversation(
     conversation_id: int,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends()
+    current_user: models.User = Depends(get_current_user)
 ):
     conversation = crud.get_conversation(db, conversation_id=conversation_id)
     if conversation is None:
@@ -49,7 +50,7 @@ def create_message(
     conversation_id: int,
     message: schemas.MessageCreate,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends()
+    current_user: models.User = Depends(get_current_user)
 ):
     conversation = crud.get_conversation(db, conversation_id=conversation_id)
     if conversation is None:

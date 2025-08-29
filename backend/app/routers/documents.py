@@ -10,6 +10,7 @@ from typing import List
 from .. import crud, schemas, models
 from ..database import get_db
 from ..services.document_processing import process_document
+from ..dependencies import get_current_user
 
 router = APIRouter(
     prefix="/documents",
@@ -23,7 +24,7 @@ def create_document(
     content: str = None,
     metadata: str = None,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends()
+    current_user: models.User = Depends(get_current_user)
 ):
     document_create = schemas.DocumentCreate(
         title=title,
@@ -37,7 +38,7 @@ def create_document(
 async def upload_document(
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
-    current_user: models.User = Depends()
+    current_user: models.User = Depends(get_current_user)
 ):
     content = await file.read()
     processed_data = process_document(content, file.content_type, file.filename)
@@ -53,7 +54,7 @@ async def upload_document(
 @router.get("/", response_model=List[schemas.Document])
 def read_documents(
     db: Session = Depends(get_db),
-    current_user: models.User = Depends()
+    current_user: models.User = Depends(get_current_user)
 ):
     return crud.get_documents_by_user(db, user_id=current_user.id)
 
@@ -61,7 +62,7 @@ def read_documents(
 def read_document(
     document_id: int,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends()
+    current_user: models.User = Depends(get_current_user)
 ):
     document = crud.get_document(db, document_id=document_id)
     if document is None:

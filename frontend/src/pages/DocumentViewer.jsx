@@ -29,21 +29,8 @@ const DocumentViewer = () => {
     setIsLoading(true);
     setError(null);
     try {
-      // In a real app, you would fetch the document from the API
-      // For now, we'll use mock data
-      const mockDocument = {
-        id: 1,
-        title: 'Sample Document.pdf',
-        content: 'This is the content of the document. It contains multiple paragraphs and sections that can be analyzed by the AI.',
-        metadata: {
-          file_type: 'pdf',
-          pages: 5,
-          created_at: '2023-01-15T10:30:00Z'
-        }
-      };
-      setDocument(mockDocument);
-
-      // Generate some suggested questions
+      const res = await axios.get(`${import.meta.env.VITE_API_BASE || 'http://localhost:8000'}/documents/${id}`);
+      setDocument(res.data);
       setSuggestedQuestions([
         'What is the main topic of this document?',
         'Can you summarize the key points?',
@@ -147,7 +134,13 @@ const DocumentViewer = () => {
             ) : (
               <div>
                 <dl className="grid grid-cols-1 gap-x-4 gap-y-2 sm:grid-cols-2">
-                  {Object.entries(document.metadata).map(([key, value]) => (
+                  {Object.entries((() => {
+                    const md = document.document_metadata ?? {};
+                    if (typeof md === 'string') {
+                      try { return JSON.parse(md); } catch { return {}; }
+                    }
+                    return md;
+                  })()).map(([key, value]) => (
                     <div key={key} className="sm:col-span-1">
                       <dt className="text-sm font-medium text-gray-500">{key.charAt(0).toUpperCase() + key.slice(1)}</dt>
                       <dd className="mt-1 text-sm text-gray-900">{String(value)}</dd>

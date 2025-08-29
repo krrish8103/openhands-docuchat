@@ -18,22 +18,17 @@ const Dashboard = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Fetch documents for the user
     fetchDocuments();
   }, []);
 
   const fetchDocuments = async () => {
     setIsLoading(true);
     try {
-      // In a real app, you would fetch documents from the API
-      // For now, we'll use mock data
-      setDocuments([
-        { id: 1, title: 'Document 1.pdf', file_type: 'pdf' },
-        { id: 2, title: 'Document 2.docx', file_type: 'docx' },
-        { id: 3, title: 'Document 3.txt', file_type: 'txt' },
-      ]);
+      const res = await axios.get(`${import.meta.env.VITE_API_BASE || 'http://localhost:8000'}/documents/`);
+      setDocuments(res.data || []);
     } catch (err) {
       console.error('Failed to fetch documents:', err);
+      setDocuments([]);
     } finally {
       setIsLoading(false);
     }

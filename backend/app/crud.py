@@ -7,6 +7,7 @@
 from sqlalchemy.orm import Session
 from . import models, schemas
 from passlib.context import CryptContext
+import json
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -38,11 +39,15 @@ def get_documents_by_user(db: Session, user_id: int):
     return db.query(models.Document).filter(models.Document.user_id == user_id).all()
 
 def create_document(db: Session, document: schemas.DocumentCreate, user_id: int):
+    # Ensure metadata is stored as string (JSON) if dict/list provided
+    meta = document.metadata
+    if isinstance(meta, (dict, list)):
+        meta = json.dumps(meta)
     db_document = models.Document(
         title=document.title,
         file_type=document.file_type,
         content=document.content,
-        metadata=document.metadata,
+        document_metadata=meta,
         user_id=user_id
     )
     db.add(db_document)
@@ -71,7 +76,7 @@ def create_message(db: Session, message: schemas.MessageCreate, conversation_id:
     db_message = models.Message(
         sender=message.sender,
         content=message.content,
-        metadata=message.metadata,
+        message_metadata=message.metadata,
         conversation_id=conversation_id
     )
     db.add(db_message)
