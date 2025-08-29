@@ -35,7 +35,7 @@ const ChatPage = () => {
 
     if (initialQuestion) {
       setInput(initialQuestion);
-      // actual send will occur after conversation is available
+      handleSendMessage(initialQuestion);
     } else {
       fetchConversation();
     }
