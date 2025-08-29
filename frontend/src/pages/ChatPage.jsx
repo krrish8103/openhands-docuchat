@@ -61,8 +61,12 @@ const ChatPage = () => {
     setError(null);
     try {
       const res = await axios.get(`${import.meta.env.VITE_API_BASE || 'http://localhost:8000'}/chat/conversations/${conversationId}`);
-      // We don't have messages listing in backend; leave messages empty for now
-      setMessages([]);
+      const conv = res.data;
+      const mapped = (conv.messages || []).map(m => ({ id: m.id, sender: m.sender, content: m.content, timestamp: m.created_at }));
+      setMessages(mapped);
+      if (!document && conv.document_id) {
+        fetchDocument(conv.document_id);
+      }
     } catch (err) {
       setError('Failed to load conversation');
       console.error('Error loading conversation:', err);
@@ -101,7 +105,7 @@ const ChatPage = () => {
       }
       await axios.post(`${apiBase}/chat/conversations/${currentConvId}/messages`, { sender: 'user', content: messageContent });
       // Trigger AI reply via backend convenience: send with sender='ai' to get generated content
-      const aiRes = await axios.post(`${apiBase}/chat/conversations/${currentConvId}/messages`, { sender: 'ai', content: messageContent });
+      const aiRes = await axios.post(`${apiBase}/chat/conversations/${currentConvId}/messages`, { sender: 'ai', content: messageContent }, { params: { model: selectedModel } });
       setMessages(prevMessages => [...prevMessages, { id: Date.now() + 1, sender: 'ai', content: aiRes.data.content, timestamp: new Date().toISOString() }]);
     } catch (err) {
       setError('Failed to send message');

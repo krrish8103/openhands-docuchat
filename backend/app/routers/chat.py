@@ -49,6 +49,7 @@ def read_conversation(
 def create_message(
     conversation_id: int,
     message: schemas.MessageCreate,
+    model: str = "gpt-4o-mini",
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
@@ -60,8 +61,10 @@ def create_message(
 
     # If this is an AI response, get the response from the AI service
     if message.sender == "ai":
-        ai_response = get_ai_response(message.content)
+        ai_response = get_ai_response(message.content, model=model)
         message.content = ai_response
+        # store selected model for traceability
+        message.message_metadata = (message.message_metadata or "") + f"|model:{model}"
 
     return crud.create_message(db=db, message=message, conversation_id=conversation_id)
 

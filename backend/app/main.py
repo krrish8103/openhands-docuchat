@@ -12,6 +12,8 @@ load_dotenv()
 
 app = FastAPI()
 
+# Ensure models are imported before creating tables
+from . import models  # noqa: F401
 # Create all tables on startup (for SQLite demo)
 Base.metadata.create_all(bind=engine)
 

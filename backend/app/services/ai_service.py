@@ -16,10 +16,28 @@ load_dotenv()
 # Initialize AI models
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
+
+def _has_valid_openai_key() -> bool:
+    key = os.getenv("OPENAI_API_KEY") or openai.api_key
+    if not key:
+        return False
+    # Common placeholder patterns or non-usable keys
+    placeholders = {"your_openai_api_key_here", "OPENAI_API_KEY", "changeme", "sk-PLACEHOLDER"}
+    if key in placeholders:
+        return False
+    # OpenAI keys typically start with sk-
+    if not str(key).startswith("sk-"):
+        return False
+    return True
+
 def get_ai_response(prompt: str, model: str = "gpt-4o-mini") -> str:
     """
     Get response from AI model based on the prompt.
     """
+    # If no vendor keys configured, return a simple stub so demo works offline
+    if not _has_valid_openai_key() and not os.getenv("DEEPSEEK_API_KEY") and not os.getenv("GEMINI_API_KEY"):
+        return "This is a demo AI reply. Configure API keys to enable real responses."
+
     try:
         if model == "gpt-4o-mini":
             return call_openai(prompt, "gpt-4o-mini")
@@ -29,8 +47,8 @@ def get_ai_response(prompt: str, model: str = "gpt-4o-mini") -> str:
             return call_gemini(prompt)
         else:
             return call_openai(prompt, "gpt-4o-mini")
-    except Exception as e:
-        return f"Error: {str(e)}"
+    except Exception:
+        return "Sorry, the AI service is unavailable right now."
 
 def call_openai(prompt: str, model: str = "gpt-4o-mini") -> str:
     """Call OpenAI API"""
